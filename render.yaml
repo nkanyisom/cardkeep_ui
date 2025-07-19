@@ -7,13 +7,14 @@ services:
     name: cardkeep
     env: static
     buildCommand: |
-      rm -rf ~/flutter &&
-      git clone https://github.com/flutter/flutter.git -b stable ~/flutter &&
-      export PATH="$HOME/flutter/bin:$PATH" &&
-      ~/flutter/bin/flutter config --enable-web &&
-      ~/flutter/bin/flutter clean &&
-      ~/flutter/bin/flutter pub get &&
-      ~/flutter/bin/flutter build web --release --web-renderer canvaskit --dart-define=FLUTTER_APP_ENVIRONMENT=production
+      export FLUTTER_HOME="$HOME/flutter" &&
+      export FLUTTER_BIN="$FLUTTER_HOME/bin/flutter" &&
+      rm -rf "$FLUTTER_HOME" &&
+      git clone https://github.com/flutter/flutter.git -b stable "$FLUTTER_HOME" &&
+      "$FLUTTER_BIN" config --enable-web &&
+      "$FLUTTER_BIN" clean &&
+      "$FLUTTER_BIN" pub get &&
+      "$FLUTTER_BIN" build web --release --web-renderer canvaskit --dart-define=FLUTTER_APP_ENVIRONMENT=production
     publishPath: build/web
     
     # Custom headers for better performance and security

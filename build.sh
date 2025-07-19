@@ -4,46 +4,44 @@ set -e  # Exit on any error
 # Build script for Render deployment
 echo "🏗️ Building CardKeep for Render..."
 
+# Set Flutter paths
+FLUTTER_HOME="$HOME/flutter"
+FLUTTER_BIN="$FLUTTER_HOME/bin/flutter"
+
 # Install Flutter if not available
-if ! command -v flutter &> /dev/null; then
+if [ ! -f "$FLUTTER_BIN" ]; then
     echo "📥 Installing Flutter..."
     
     # Remove existing flutter directory if it exists
-    rm -rf ~/flutter
+    rm -rf "$FLUTTER_HOME"
     
     # Clone Flutter
-    git clone https://github.com/flutter/flutter.git -b stable ~/flutter
-    
-    # Add Flutter to PATH for this session
-    export PATH="$HOME/flutter/bin:$PATH"
+    git clone https://github.com/flutter/flutter.git -b stable "$FLUTTER_HOME"
     
     # Verify Flutter installation
     echo "🔍 Verifying Flutter installation..."
-    ~/flutter/bin/flutter --version
+    "$FLUTTER_BIN" --version
     
     # Enable web support
-    ~/flutter/bin/flutter config --enable-web
+    "$FLUTTER_BIN" config --enable-web
     
     # Pre-cache dependencies
-    ~/flutter/bin/flutter precache --web
+    "$FLUTTER_BIN" precache --web
     
 else
     echo "✅ Flutter is already available"
-    flutter --version
+    "$FLUTTER_BIN" --version
 fi
 
-# Ensure Flutter is in PATH
-export PATH="$HOME/flutter/bin:$PATH"
-
-# Clean and build
+# Clean and build using absolute paths
 echo "🧹 Cleaning previous build..."
-flutter clean
+"$FLUTTER_BIN" clean
 
 echo "📦 Getting dependencies..."
-flutter pub get
+"$FLUTTER_BIN" pub get
 
 echo "🌐 Building web application..."
-flutter build web \
+"$FLUTTER_BIN" build web \
     --release \
     --web-renderer canvaskit \
     --dart-define=FLUTTER_APP_ENVIRONMENT=production \
