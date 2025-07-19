@@ -23,6 +23,18 @@ class ApiService {
       final token = _authService.jwtToken;
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+
+        // Debug: decode JWT to see user info
+        try {
+          final parts = token.split('.');
+          if (parts.length == 3) {
+            final payload = base64Url.decode(base64Url.normalize(parts[1]));
+            final claims = jsonDecode(utf8.decode(payload));
+            print('🔑 Making API call for user: ${claims['sub']} (JWT)');
+          }
+        } catch (e) {
+          print('⚠️ Could not decode JWT: $e');
+        }
       }
     } catch (e) {
       debugPrint('Error getting JWT token: $e');
@@ -71,11 +83,16 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 30));
 
+      print('🌐 Backend response for cards: ${response.statusCode}');
+      print('🌐 Backend response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-        return data
+        final cards = data
             .map((json) => LoyaltyCard.fromJson(json as Map<String, dynamic>))
             .toList();
+        print('🌐 Backend returned ${cards.length} cards');
+        return cards;
       } else {
         throw Exception('Failed to load cards: ${response.statusCode}');
       }

@@ -42,6 +42,7 @@ class OfflineCacheService {
     await _cardsBox?.clear();
     await _metadataBox?.clear();
     _currentUserId = null;
+    print('🧹 All cache cleared');
   }
 
   /// Set current user for data isolation
@@ -68,12 +69,20 @@ class OfflineCacheService {
   /// Get all cached cards for current user
   List<LoyaltyCard> getAllCachedCards() {
     final currentUser = getCurrentUserId();
-    if (currentUser == null) return [];
+    if (currentUser == null) {
+      print('⚠️ No current user set for cache retrieval');
+      return [];
+    }
 
     // Filter cards by checking if the key contains the current user ID
     final userCards = <LoyaltyCard>[];
 
     if (_cardsBox != null) {
+      final allKeys = _cardsBox!.keys.toList();
+      print('🔍 Cache has ${allKeys.length} total keys: ${allKeys.take(5)}');
+      print(
+          '🔍 Looking for user $currentUser keys with prefix "${currentUser}_"');
+
       for (var entry in _cardsBox!.toMap().entries) {
         if (entry.key.startsWith('${currentUser}_')) {
           userCards.add(entry.value);
@@ -81,6 +90,8 @@ class OfflineCacheService {
       }
     }
 
+    print(
+        '📦 Retrieved ${userCards.length} cached cards for user $currentUser');
     return userCards;
   }
 
@@ -212,7 +223,7 @@ class OfflineCacheService {
 
   /// Replace cache with server data
   Future<void> replaceCacheWithServerData(List<LoyaltyCard> serverCards) async {
-    await _cardsBox?.clear();
+    // Use the user-specific cacheCards method which clears and caches with proper user keys
     final syncedCards = serverCards.map((card) => card.markAsSynced()).toList();
     await cacheCards(syncedCards);
     await setLastSyncTime(DateTime.now());
@@ -225,37 +236,33 @@ class OfflineCacheService {
     final localChanges = getCardsNeedingSync();
 
     // Start with server data
-    final Map<String, LoyaltyCard> mergedCards = {};
+    final List<LoyaltyCard> mergedCards = [];
 
-    // Add all server cards
+    // Add all server cards (marked as synced)
     for (var serverCard in serverCards) {
-      String key = serverCard.id?.toString() ??
-          'server_${DateTime.now().millisecondsSinceEpoch}';
-      mergedCards[key] = serverCard.markAsSynced();
+      mergedCards.add(serverCard.markAsSynced());
     }
 
     // Preserve local cards that need sync (haven't been pushed to server yet)
     for (var localCard in localChanges) {
       if (localCard.id == null) {
         // This is a local-only card that hasn't been synced yet
-        String key =
-            'temp_${DateTime.now().millisecondsSinceEpoch}_${localCard.hashCode}';
-        mergedCards[key] = localCard;
+        mergedCards.add(localCard);
       } else {
         // This is an updated card that hasn't been synced yet
-        String key = localCard.id.toString();
-        mergedCards[key] = localCard; // Keep local changes
+        // Replace the server version with local changes
+        mergedCards.removeWhere((card) => card.id == localCard.id);
+        mergedCards.add(localCard); // Keep local changes
       }
     }
 
-    // Clear cache and store merged data
-    await _cardsBox?.clear();
-    await _cardsBox?.putAll(mergedCards);
+    // Use the user-specific cacheCards method instead of direct cache manipulation
+    await cacheCards(mergedCards);
 
     await setLastSyncTime(DateTime.now());
     await setSyncStatus('synced');
 
-    return mergedCards.values.toList();
+    return mergedCards;
   }
 
   /// Get formatted last sync time
