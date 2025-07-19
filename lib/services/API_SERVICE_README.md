@@ -226,7 +226,7 @@ class CardService extends ChangeNotifier {
 The API base URL is configured in the `ApiService` class:
 
 ```dart
-static const String baseUrl = 'http://localhost:8080/api';
+static const String baseUrl = 'https://cardkeep-backend.onrender.com/api';
 ```
 
 For production, update this to your deployed backend URL.
@@ -261,7 +261,7 @@ if (isHealthy) {
 ```
 
 ### Manual Testing
-1. Start your Spring Boot backend on `http://localhost:8080`
+1. Start your Spring Boot backend on `http://https://cardkeep-backend.onrender.com`
 2. Run the Flutter app
 3. Test authentication flows
 4. Test card CRUD operations

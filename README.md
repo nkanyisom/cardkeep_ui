@@ -80,7 +80,7 @@ lib/
 
 4. **Configure API endpoint**
    - Update the base URL in `lib/services/api_service.dart` if needed
-   - Default: `http://localhost:8080/api`
+   - Default: `https://cardkeep-backend.onrender.com/api`
 
 5. **Run the app**
    ```bash
@@ -103,7 +103,7 @@ lib/
 
 The app integrates with a Spring Boot REST API:
 
-- **Base URL**: `http://localhost:8080/api`
+- **Base URL**: `https://cardkeep-backend.onrender.com/api`
 - **Authentication**: JWT Bearer tokens
 - **Endpoints**:
   - `POST /auth/signup` - User registration

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:card_keep/services/simple_auth_service.dart';
 import 'package:card_keep/services/card_service.dart';
 import 'package:card_keep/services/api_service.dart';
@@ -226,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'http://localhost:8080',
+                        'http://https://cardkeep-backend.onrender.com',
                         style: TextStyle(
                           color: Colors.green[700],
                           fontWeight: FontWeight.w500,

@@ -11,7 +11,7 @@ This directory contains a comprehensive Postman collection for testing the Sprin
 
 1. **Import Collection**: Import both JSON files into Postman
 2. **Set Environment**: Select "Loyalty Card API - Local" environment
-3. **Start Server**: Ensure your Spring Boot server is running on `http://localhost:8080`
+3. **Start Server**: Ensure your Spring Boot server is running on `http://https://cardkeep-backend.onrender.com`
 4. **Run Tests**: Execute the collection in order
 
 ## API Endpoints Included
@@ -64,7 +64,7 @@ This directory contains a comprehensive Postman collection for testing the Sprin
 
 The collection uses these environment variables (automatically managed):
 
-- `base_url` - API base URL (http://localhost:8080/api)
+- `base_url` - API base URL (https://cardkeep-backend.onrender.com/api)
 - `jwt_token` - JWT token from login (auto-populated)
 - `user_id` - Current user ID (auto-populated)
 - `user_email` - Current user email (auto-populated)
@@ -95,7 +95,7 @@ Each request includes automated tests that:
 For production testing:
 
 1. Update `base_url` in environment to your production API
-2. Replace `http://localhost:8080/api` with your production URL
+2. Replace `https://cardkeep-backend.onrender.com/api` with your production URL
 3. Ensure HTTPS is used for production endpoints
 4. Update authentication credentials as needed
 

@@ -195,7 +195,7 @@ Consumer<CardService>(
    ```
 
 2. **Verify Backend Connection**: 
-   - Ensure your Spring Boot backend is running on `http://localhost:8080`
+   - Ensure your Spring Boot backend is running on `http://https://cardkeep-backend.onrender.com`
    - Test authentication endpoints
    - Test CRUD operations
 

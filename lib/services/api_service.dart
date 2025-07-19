@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:card_keep/config/environment_config.dart';
 import 'package:card_keep/models/loyalty_card.dart';
-import 'package:card_keep/models/user.dart';
 import 'package:card_keep/services/simple_auth_service.dart';
 
 /// Simple API service for handling HTTP requests to the Spring Boot backend

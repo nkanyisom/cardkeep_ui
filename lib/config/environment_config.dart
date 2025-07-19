@@ -4,10 +4,10 @@ class EnvironmentConfig {
     defaultValue: 'development',
   );
 
-  static const String _devApiUrl = 'http://localhost:8080/api';
+  static const String _devApiUrl = 'https://cardkeep-backend.onrender.com/api';
   static const String _prodApiUrl = String.fromEnvironment(
     'FLUTTER_APP_API_BASE_URL_PROD',
-    defaultValue: 'https://your-api-domain.com/api',
+    defaultValue: 'https://cardkeep-backend.onrender.com/api',
   );
 
   static bool get isDevelopment => _environment == 'development';

@@ -8,7 +8,7 @@ import 'package:card_keep/services/simple_auth_service.dart';
 
 /// Simple API service for handling HTTP requests to the Spring Boot backend
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'https://cardkeep-backend.onrender.com/api';
   final SimpleAuthService _authService;
 
   ApiService(this._authService);

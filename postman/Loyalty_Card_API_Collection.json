@@ -992,7 +992,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8080/api",
+			"value": "https://cardkeep-backend.onrender.com/api",
 			"type": "string"
 		}
 	]

@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:card_keep/config/environment_config.dart';
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
@@ -29,46 +30,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:web:abcdef123456789',
-    messagingSenderId: '123456789',
-    projectId: 'loyalty-card-demo',
-    authDomain: 'loyalty-card-demo.firebaseapp.com',
-    storageBucket: 'loyalty-card-demo.appspot.com',
+    apiKey: EnvironmentConfig.firebaseApiKey,
+    appId: EnvironmentConfig.firebaseAppId,
+    messagingSenderId: EnvironmentConfig.firebaseMessagingSenderId,
+    projectId: EnvironmentConfig.firebaseProjectId,
+    authDomain: EnvironmentConfig.firebaseAuthDomain,
+    storageBucket: EnvironmentConfig.firebaseStorageBucket,
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:android:abcdef123456789',
-    messagingSenderId: '123456789',
-    projectId: 'loyalty-card-demo',
-    storageBucket: 'loyalty-card-demo.appspot.com',
+    apiKey: EnvironmentConfig.firebaseApiKey,
+    appId: EnvironmentConfig.firebaseAppId,
+    messagingSenderId: EnvironmentConfig.firebaseMessagingSenderId,
+    projectId: EnvironmentConfig.firebaseProjectId,
+    storageBucket: EnvironmentConfig.firebaseStorageBucket,
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:ios:abcdef123456789',
-    messagingSenderId: '123456789',
-    projectId: 'loyalty-card-demo',
-    storageBucket: 'loyalty-card-demo.appspot.com',
+    apiKey: EnvironmentConfig.firebaseApiKey,
+    appId: EnvironmentConfig.firebaseAppId,
+    messagingSenderId: EnvironmentConfig.firebaseMessagingSenderId,
+    projectId: EnvironmentConfig.firebaseProjectId,
+    storageBucket: EnvironmentConfig.firebaseStorageBucket,
     iosBundleId: 'za.co.jbrew.stoKarataUi',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:ios:abcdef123456789',
-    messagingSenderId: '123456789',
-    projectId: 'loyalty-card-demo',
-    storageBucket: 'loyalty-card-demo.appspot.com',
+    apiKey: EnvironmentConfig.firebaseApiKey,
+    appId: EnvironmentConfig.firebaseAppId,
+    messagingSenderId: EnvironmentConfig.firebaseMessagingSenderId,
+    projectId: EnvironmentConfig.firebaseProjectId,
+    storageBucket: EnvironmentConfig.firebaseStorageBucket,
     iosBundleId: 'za.co.jbrew.stoKarataUi',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'demo-api-key',
-    appId: '1:123456789:web:abcdef123456789',
-    messagingSenderId: '123456789',
-    projectId: 'loyalty-card-demo',
-    authDomain: 'loyalty-card-demo.firebaseapp.com',
-    storageBucket: 'loyalty-card-demo.appspot.com',
+    apiKey: EnvironmentConfig.firebaseApiKey,
+    appId: EnvironmentConfig.firebaseAppId,
+    messagingSenderId: EnvironmentConfig.firebaseMessagingSenderId,
+    projectId: EnvironmentConfig.firebaseProjectId,
+    authDomain: EnvironmentConfig.firebaseAuthDomain,
+    storageBucket: EnvironmentConfig.firebaseStorageBucket,
   );
 }

@@ -41,7 +41,7 @@ This is a Flutter application for managing loyalty cards with the following key 
 - Use Firebase Messaging for push notifications
 
 ## API Integration
-- Base URL: `http://localhost:8080/api`
+- Base URL: `https://cardkeep-backend.onrender.com/api`
 - Authentication: JWT Bearer tokens
 - Endpoints: `/auth/signup`, `/auth/login`, `/cards` CRUD operations
 - Always include proper error handling for network requests

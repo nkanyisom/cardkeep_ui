@@ -52,7 +52,7 @@ Before running the app, you'll need to:
 
 ## Backend API
 
-Make sure your Spring Boot backend is running on `http://localhost:8080` before testing the app.
+Make sure your Spring Boot backend is running on `http://https://cardkeep-backend.onrender.com` before testing the app.
 
 ## Next Steps
 

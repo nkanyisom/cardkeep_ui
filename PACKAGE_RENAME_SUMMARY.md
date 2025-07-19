@@ -69,4 +69,4 @@ android/app/src/main/kotlin/
 - Android uses snake_case: `sto_karata_ui`
 - iOS uses camelCase: `stoKarataUi`
 - All authentication features remain intact
-- API integration points to localhost:8080 for backend
+- API integration points to https://cardkeep-backend.onrender.com for backend
