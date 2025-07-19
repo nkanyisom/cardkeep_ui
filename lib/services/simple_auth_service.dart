@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:card_keep/services/offline_cache_service.dart';
 
 class SimpleAuthService extends ChangeNotifier {
   String? _jwtToken;
@@ -31,6 +32,19 @@ class SimpleAuthService extends ChangeNotifier {
 
       if (_jwtToken != null && userJson != null) {
         _currentUser = jsonDecode(userJson);
+
+        // Set current user in cache for data isolation
+        try {
+          final cacheService = OfflineCacheService();
+          String userId = _currentUser!['id']?.toString() ??
+              _currentUser!['email'] ??
+              'unknown';
+          await cacheService.setCurrentUser(userId);
+          print('🔄 Restored current user in cache: $userId');
+        } catch (e) {
+          print('⚠️ Error restoring current user in cache: $e');
+        }
+
         notifyListeners();
       }
     } catch (e) {
@@ -72,7 +86,17 @@ class SimpleAuthService extends ChangeNotifier {
 
         if (data['token'] != null) {
           _jwtToken = data['token'];
-          _currentUser = data['user'] ?? {'email': email};
+          _currentUser = data; // Store the full response data
+
+          // Set current user in cache for data isolation
+          try {
+            final cacheService = OfflineCacheService();
+            String userId = data['id']?.toString() ?? data['email'] ?? email;
+            await cacheService.setCurrentUser(userId);
+            print('🔑 Set current user in cache: $userId');
+          } catch (e) {
+            print('⚠️ Error setting current user in cache: $e');
+          }
 
           // Store in SharedPreferences
           final prefs = await SharedPreferences.getInstance();
@@ -130,7 +154,17 @@ class SimpleAuthService extends ChangeNotifier {
 
         if (data['token'] != null) {
           _jwtToken = data['token'];
-          _currentUser = data['user'] ?? {'email': email};
+          _currentUser = data; // Store the full response data
+
+          // Set current user in cache for data isolation
+          try {
+            final cacheService = OfflineCacheService();
+            String userId = data['id']?.toString() ?? data['email'] ?? email;
+            await cacheService.setCurrentUser(userId);
+            print('🔑 Set current user in cache: $userId');
+          } catch (e) {
+            print('⚠️ Error setting current user in cache: $e');
+          }
 
           // Store in SharedPreferences
           final prefs = await SharedPreferences.getInstance();
@@ -175,6 +209,15 @@ class SimpleAuthService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
     await prefs.remove('current_user');
+
+    // Clear offline cache to prevent data leakage between users
+    try {
+      final OfflineCacheService cacheService = OfflineCacheService();
+      await cacheService.clearCache();
+      print('🧹 Cache cleared on logout');
+    } catch (e) {
+      print('⚠️ Error clearing cache on logout: $e');
+    }
 
     notifyListeners();
   }

@@ -5,9 +5,11 @@ import '../models/loyalty_card.dart';
 class OfflineCacheService {
   static const String _cardsBoxName = 'loyalty_cards';
   static const String _syncMetadataBoxName = 'sync_metadata';
+  static const String _currentUserKey = 'current_user_id';
 
   Box<LoyaltyCard>? _cardsBox;
   Box<dynamic>? _metadataBox;
+  String? _currentUserId;
 
   static final OfflineCacheService _instance = OfflineCacheService._internal();
   factory OfflineCacheService() => _instance;
@@ -39,43 +41,89 @@ class OfflineCacheService {
   Future<void> clearCache() async {
     await _cardsBox?.clear();
     await _metadataBox?.clear();
+    _currentUserId = null;
+  }
+
+  /// Set current user for data isolation
+  Future<void> setCurrentUser(String userId) async {
+    if (_currentUserId != userId) {
+      _currentUserId = userId;
+      await _metadataBox?.put(_currentUserKey, userId);
+    }
+  }
+
+  /// Get current user ID
+  String? getCurrentUserId() {
+    return _currentUserId ?? _metadataBox?.get(_currentUserKey);
+  }
+
+  /// Check if data belongs to current user
+  bool _belongsToCurrentUser(String? dataUserId) {
+    final currentUser = getCurrentUserId();
+    return currentUser != null && dataUserId == currentUser;
   }
 
   // Cards Cache Operations
 
-  /// Get all cached cards
+  /// Get all cached cards for current user
   List<LoyaltyCard> getAllCachedCards() {
-    return _cardsBox?.values.toList() ?? [];
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) return [];
+
+    // Filter cards by checking if the key contains the current user ID
+    final userCards = <LoyaltyCard>[];
+
+    if (_cardsBox != null) {
+      for (var entry in _cardsBox!.toMap().entries) {
+        if (entry.key.startsWith('${currentUser}_')) {
+          userCards.add(entry.value);
+        }
+      }
+    }
+
+    return userCards;
   }
 
-  /// Get cards that need sync
+  /// Get cards that need sync for current user
   List<LoyaltyCard> getCardsNeedingSync() {
-    return _cardsBox?.values.where((card) => card.needsSync).toList() ?? [];
+    return getAllCachedCards().where((card) => card.needsSync).toList();
   }
 
-  /// Cache a single card
+  /// Cache a single card with user-specific key
   Future<void> cacheCard(LoyaltyCard card) async {
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) return;
+
     String key =
         card.id?.toString() ?? 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    await _cardsBox?.put(key, card);
+    String userSpecificKey = '${currentUser}_$key';
+    await _cardsBox?.put(userSpecificKey, card);
   }
 
-  /// Cache multiple cards
+  /// Cache multiple cards with user-specific keys
   Future<void> cacheCards(List<LoyaltyCard> cards) async {
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) return;
+
     final Map<String, LoyaltyCard> cardsMap = {};
     for (var card in cards) {
       String key = card.id?.toString() ??
           'temp_${DateTime.now().millisecondsSinceEpoch}';
-      cardsMap[key] = card;
+      String userSpecificKey = '${currentUser}_$key';
+      cardsMap[userSpecificKey] = card;
     }
     await _cardsBox?.putAll(cardsMap);
   }
 
-  /// Update cached card
+  /// Update cached card with user-specific key
   Future<void> updateCachedCard(LoyaltyCard card) async {
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) return;
+
     String key =
         card.id?.toString() ?? 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    await _cardsBox?.put(key, card.markForSync());
+    String userSpecificKey = '${currentUser}_$key';
+    await _cardsBox?.put(userSpecificKey, card.markForSync());
   }
 
   /// Remove a local card from cache (used when card is synced to server)
