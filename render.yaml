@@ -1,0 +1,47 @@
+# Render.com Deployment Configuration for CardKeep
+version: 1
+
+services:
+  # Static Site Service for CardKeep Web App
+  - type: static_site
+    name: cardkeep
+    env: static
+    buildCommand: |
+      flutter clean &&
+      flutter pub get &&
+      flutter build web --release --web-renderer canvaskit --dart-define=FLUTTER_APP_ENVIRONMENT=production
+    publishPath: build/web
+    
+    # Custom headers for better performance and security
+    headers:
+      - path: "/"
+        name: "X-Frame-Options"
+        value: "SAMEORIGIN"
+      - path: "/"
+        name: "X-Content-Type-Options"
+        value: "nosniff"
+      - path: "/"
+        name: "Referrer-Policy"
+        value: "strict-origin-when-cross-origin"
+      - path: "/static/*"
+        name: "Cache-Control"
+        value: "public, max-age=31536000, immutable"
+    
+    # Routes for SPA (Single Page Application)
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    
+    # Environment variables (set these in Render dashboard)
+    envVars:
+      - key: FLUTTER_APP_ENVIRONMENT
+        value: production
+      - key: FLUTTER_APP_API_BASE_URL_PROD
+        value: https://your-api-domain.com/api
+      - key: FIREBASE_API_KEY
+        value: your-firebase-api-key
+      - key: FIREBASE_AUTH_DOMAIN
+        value: your-project.firebaseapp.com
+      - key: FIREBASE_PROJECT_ID
+        value: your-project-id
