@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e  # Exit on any error
 
 # Build script for Render deployment
 echo "🏗️ Building CardKeep for Render..."
@@ -6,10 +7,33 @@ echo "🏗️ Building CardKeep for Render..."
 # Install Flutter if not available
 if ! command -v flutter &> /dev/null; then
     echo "📥 Installing Flutter..."
+    
+    # Remove existing flutter directory if it exists
+    rm -rf ~/flutter
+    
+    # Clone Flutter
     git clone https://github.com/flutter/flutter.git -b stable ~/flutter
-    export PATH="$PATH:~/flutter/bin"
-    flutter config --enable-web
+    
+    # Add Flutter to PATH for this session
+    export PATH="$HOME/flutter/bin:$PATH"
+    
+    # Verify Flutter installation
+    echo "🔍 Verifying Flutter installation..."
+    ~/flutter/bin/flutter --version
+    
+    # Enable web support
+    ~/flutter/bin/flutter config --enable-web
+    
+    # Pre-cache dependencies
+    ~/flutter/bin/flutter precache --web
+    
+else
+    echo "✅ Flutter is already available"
+    flutter --version
 fi
+
+# Ensure Flutter is in PATH
+export PATH="$HOME/flutter/bin:$PATH"
 
 # Clean and build
 echo "🧹 Cleaning previous build..."

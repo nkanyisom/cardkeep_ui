@@ -1,0 +1,4 @@
+# Render should ignore Docker files for static site deployment
+Dockerfile
+docker-compose.yml
+.dockerignore
