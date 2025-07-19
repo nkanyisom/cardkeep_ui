@@ -46,9 +46,13 @@ class SimpleAuthService extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      final signupUrl = '$baseUrl/api/auth/signup';
+      print('🔍 DEBUG: Signup URL being used: $signupUrl');
+      print('🔍 DEBUG: Base URL: $baseUrl');
+
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/auth/signup'),
+            Uri.parse(signupUrl),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -100,9 +104,13 @@ class SimpleAuthService extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      final loginUrl = '$baseUrl/api/auth/login';
+      print('🔍 DEBUG: Login URL being used: $loginUrl');
+      print('🔍 DEBUG: Base URL: $baseUrl');
+
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/auth/login'),
+            Uri.parse(loginUrl),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
