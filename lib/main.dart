@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'http://https://cardkeep-backend.onrender.com',
+                        'https://cardkeep-backend.onrender.com',
                         style: TextStyle(
                           color: Colors.green[700],
                           fontWeight: FontWeight.w500,

@@ -17,7 +17,7 @@ class SimpleAuthService extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null && _jwtToken != null;
 
   // Base URL for your Spring Boot backend
-  static const String baseUrl = 'http://https://cardkeep-backend.onrender.com';
+  static const String baseUrl = 'https://cardkeep-backend.onrender.com';
 
   SimpleAuthService() {
     _loadStoredToken();
