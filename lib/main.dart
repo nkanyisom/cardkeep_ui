@@ -543,7 +543,7 @@ class _CardDashboardState extends State<CardDashboard> {
                       child: ElevatedButton.icon(
                         onPressed: () => _showAddCardDialog(context),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Card'),
+                        label: const Text('Add Loyalty Cards'),
                       ),
                     ),
                   ],
