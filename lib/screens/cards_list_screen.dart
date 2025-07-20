@@ -66,11 +66,34 @@ class _CardsListScreenState extends State<CardsListScreen>
 
       return Scaffold(
         appBar: AppBar(
-          title: const Text('CardKeep',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text('🚨 MEGA TEST - SCANNER VERSION 🚨',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          backgroundColor: Colors.yellow,
           elevation: 0,
           actions: [
+            // SUPER OBVIOUS TEST BUTTON
+            Container(
+              margin: const EdgeInsets.all(8),
+              child: ElevatedButton(
+                onPressed: () {
+                  print('SCANNER BUTTON CLICKED!');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BarcodeScannerScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: const Text('🔴 SCANNER 🔴',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
             // Quick Scan Button - Enhanced visibility with text
             Container(
               margin: const EdgeInsets.only(right: 12),
@@ -161,6 +184,38 @@ class _CardsListScreenState extends State<CardsListScreen>
         ),
         body: Column(
           children: [
+            // TEST BANNER - Should be very visible
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              color: Colors.purple,
+              child: Text(
+                '� PURPLE MEGA TEST BANNER - SCANNER BUTTONS BELOW 🟣',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            // SECOND TEST BANNER
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              color: Colors.orange,
+              child: Text(
+                '🟠 ORANGE BANNER - IF YOU SEE THIS, UI IS WORKING �',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
             // Offline banner
             const OfflineBanner(),
 
