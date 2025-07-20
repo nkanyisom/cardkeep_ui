@@ -144,6 +144,45 @@ class _AddCardScreenState extends State<AddCardScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Quick Add South African Cards Section
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Quick Add South African Cards',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildPresetChip('Pick n Pay Smart Shopper'),
+                          _buildPresetChip('Checkers Xtra Savings'),
+                          _buildPresetChip('Woolworths WRewards'),
+                          _buildPresetChip('Clicks ClubCard'),
+                          _buildPresetChip('Dis-Chem Benefit'),
+                          _buildPresetChip('SPAR Rewards'),
+                          _buildPresetChip('Capitec'),
+                          _buildPresetChip('FNB eBucks'),
+                          _buildPresetChip('Discovery Vitality'),
+                          _buildPresetChip('Virgin Active'),
+                          _buildPresetChip('Mugg & Bean'),
+                          _buildPresetChip('Steers'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Barcode Data Field with Scan Button
               Row(
                 children: [
@@ -251,5 +290,64 @@ class _AddCardScreenState extends State<AddCardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildPresetChip(String cardName) {
+    return ActionChip(
+      label: Text(cardName),
+      onPressed: () {
+        setState(() {
+          _cardNameController.text = cardName;
+          // Generate a sample barcode for demo purposes
+          _barcodeDataController.text = _generateSampleBarcode(cardName);
+          _selectedBarcodeType = BarcodeType.code128;
+        });
+      },
+    );
+  }
+
+  String _generateSampleBarcode(String cardName) {
+    // Generate sample barcodes based on card name
+    final cardNameLower = cardName.toLowerCase();
+
+    if (cardNameLower.contains('pick n pay')) {
+      return '1234567890123';
+    }
+    if (cardNameLower.contains('checkers')) {
+      return '2345678901234';
+    }
+    if (cardNameLower.contains('woolworths')) {
+      return '3456789012345';
+    }
+    if (cardNameLower.contains('clicks')) {
+      return '4567890123456';
+    }
+    if (cardNameLower.contains('dis-chem')) {
+      return '5678901234567';
+    }
+    if (cardNameLower.contains('spar')) {
+      return '6789012345678';
+    }
+    if (cardNameLower.contains('capitec')) {
+      return '7890123456789';
+    }
+    if (cardNameLower.contains('fnb')) {
+      return '8901234567890';
+    }
+    if (cardNameLower.contains('discovery')) {
+      return '9012345678901';
+    }
+    if (cardNameLower.contains('virgin')) {
+      return '0123456789012';
+    }
+    if (cardNameLower.contains('mugg')) {
+      return '1357924680123';
+    }
+    if (cardNameLower.contains('steers')) {
+      return '2468013579124';
+    }
+
+    // Default sample barcode
+    return '1111222233334';
   }
 }
