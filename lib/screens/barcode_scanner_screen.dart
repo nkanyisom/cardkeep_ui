@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:card_keep/models/loyalty_card.dart';
@@ -46,7 +47,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     try {
       setState(() => _isLoading = true);
 
-      // Try to initialize camera - this might fail on web
+      // On web, skip camera initialization and show manual input
+      if (kIsWeb) {
+        setState(() {
+          _isLoading = false;
+          _isScanning = false;
+        });
+        _showWebManualInputDialog();
+        return;
+      }
+
+      // Try to initialize camera for mobile platforms
       _cameraController =
           await AdvancedBarcodeScannerService.initializeCameraController();
 
@@ -56,9 +67,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        // Don't show error dialog for web - just fall back to simple scanner
-        print('Camera not available (likely web platform): $e');
+        setState(() {
+          _isLoading = false;
+          _isScanning = false;
+        });
+        // Show manual input dialog as fallback
+        _showManualInputFallback();
       }
     }
   }
@@ -1088,5 +1102,155 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         ),
       ),
     );
+  }
+
+  // Web-specific manual input dialog
+  void _showWebManualInputDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.web, color: Colors.blue[600]),
+            const SizedBox(width: 12),
+            const Text('Web Scanner'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.blue[600], size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Camera not available on web',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Please enter your barcode number manually or use a mobile device for camera scanning.',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Enter Barcode Number',
+                hintText: 'e.g., 1234567890123',
+                prefixIcon: Icon(Icons.qr_code),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                _scannedBarcode = value;
+              },
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  Navigator.of(context).pop();
+                  _processManualBarcode(value);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_scannedBarcode?.isNotEmpty == true) {
+                Navigator.of(context).pop();
+                _processManualBarcode(_scannedBarcode!);
+              }
+            },
+            child: const Text('Process Barcode'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Fallback manual input for any platform
+  void _showManualInputFallback() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Camera Unavailable'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+                'Camera scanning is not available. Would you like to enter the barcode manually?'),
+            const SizedBox(height: 16),
+            TextField(
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Barcode Number',
+                hintText: 'Enter barcode manually',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => _scannedBarcode = value,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_scannedBarcode?.isNotEmpty == true) {
+                Navigator.of(context).pop();
+                _processManualBarcode(_scannedBarcode!);
+              }
+            },
+            child: const Text('Add Card'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Process manually entered barcode
+  void _processManualBarcode(String barcodeData) {
+    setState(() {
+      _scannedBarcode = barcodeData;
+      _selectedBarcodeType = BarcodeType.qrCode; // Default type
+
+      // Recognize South African loyalty card
+      _recognitionResult = SACardRecognitionService.recognizeCard(barcodeData);
+
+      // Auto-suggest barcode type based on recognized card
+      if (_recognitionResult!.isRecognized) {
+        _selectedBarcodeType = SACardRecognitionService.suggestBarcodeType(
+            _recognitionResult!.card);
+      }
+
+      _isScanning = false;
+    });
+
+    // Show intelligent scan result dialog
+    _showIntelligentScanDialog();
   }
 }
