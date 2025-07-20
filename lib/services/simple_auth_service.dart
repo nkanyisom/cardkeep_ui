@@ -84,7 +84,16 @@ class SimpleAuthService extends ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
 
-        if (data['token'] != null) {
+        // Check for successful registration message
+        if (data['message'] != null &&
+            data['message'].toString().toLowerCase().contains('success')) {
+          // Registration successful, but user is not automatically logged in
+          // Clear any error messages
+          _errorMessage = null;
+          notifyListeners();
+          return true;
+        } else if (data['token'] != null) {
+          // This handles the case where signup also logs in the user (if backend changes)
           _jwtToken = data['token'];
           _currentUser = data; // Store the full response data
 
@@ -106,6 +115,10 @@ class SimpleAuthService extends ChangeNotifier {
           notifyListeners();
           return true;
         }
+      } else if (response.statusCode == 400) {
+        final data = jsonDecode(response.body);
+        _errorMessage = data['message'] ?? 'Registration failed';
+        return false;
       }
 
       _errorMessage = 'Failed to create account: ${response.body}';

@@ -108,11 +108,39 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+
+        if (success && mounted) {
+          // Registration successful - show success and switch to login
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created successfully! Please sign in.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          // Switch to sign in mode and clear password
+          setState(() {
+            _isSignUp = false;
+            _passwordController.clear();
+          });
+        }
       } else {
         success = await authService.signInWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+
+        if (success && mounted) {
+          // Sign in successful
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Welcome back!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       // Show error message if authentication failed
@@ -132,16 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
               },
             ),
-          ),
-        );
-      } else if (success && mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                _isSignUp ? 'Account created successfully!' : 'Welcome back!'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
           ),
         );
       }
