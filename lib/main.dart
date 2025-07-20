@@ -101,24 +101,57 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authService = context.read<SimpleAuthService>();
+      bool success = false;
 
       if (_isSignUp) {
-        await authService.signUpWithEmail(
+        success = await authService.signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
       } else {
-        await authService.signInWithEmail(
+        success = await authService.signInWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+        );
+      }
+
+      // Show error message if authentication failed
+      if (!success && mounted) {
+        String errorMessage = authService.errorMessage ??
+            (_isSignUp ? 'Registration failed' : 'Sign in failed');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
+      } else if (success && mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                _isSignUp ? 'Account created successfully!' : 'Welcome back!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Authentication failed: ${e.toString()}'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -144,16 +177,47 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.credit_card,
-                size: 80,
-                color: Colors.blue,
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'Loyalty Card Manager',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
+              // Logo and branding
+              Container(
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      child: Icon(
+                        Icons.credit_card,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'CardKeep',
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Keep all your loyalty cards in one place',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.7),
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
               TextFormField(
@@ -213,33 +277,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       : 'Don\'t have an account? Sign Up',
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Card(
+                elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        '🚀 Backend Connected:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.security,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Secure & Reliable',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'https://cardkeep-backend.onrender.com',
+                        'Your data is encrypted and stored securely',
                         style: TextStyle(
-                          color: Colors.green[700],
-                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                          fontSize: 12,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Spring Boot APIs ready for authentication and card management',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12),
                       ),
                     ],
                   ),
@@ -280,11 +351,61 @@ class _CardDashboardState extends State<CardDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Loyalty Cards'),
+        title: Row(
+          children: [
+            const Text('My Loyalty Cards'),
+            const SizedBox(width: 16),
+            // User info display
+            Consumer<SimpleAuthService>(
+              builder: (context, authService, child) {
+                final user = authService.currentUser;
+                final userEmail = user?['email'] ?? 'User';
+                final userName = _extractUserName(userEmail);
+
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          userName.substring(0, 1).toUpperCase(),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Sign Out',
             onPressed: () async {
               await context.read<SimpleAuthService>().signOut();
             },
@@ -297,36 +418,45 @@ class _CardDashboardState extends State<CardDashboard> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // API Status Card
-                Card(
-                  color: Colors.green[50],
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green[700]),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Connected to Spring Boot API',
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                // Welcome Status Card
+                Consumer<SimpleAuthService>(
+                  builder: (context, authService, child) {
+                    final user = authService.currentUser;
+                    final userEmail = user?['email'] ?? 'User';
+                    final userName = _extractUserName(userEmail);
+
+                    return Card(
+                      color: Colors.green[50],
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[700]),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Welcome back, $userName!',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  Text(
+                                    'Logged in as $userEmail',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                'Ready for card management operations',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green[700],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -576,5 +706,18 @@ class _CardDashboardState extends State<CardDashboard> {
         }
       }
     }
+  }
+
+  String _extractUserName(String email) {
+    // Extract name from email (part before @)
+    String name = email.split('@')[0];
+    // Capitalize first letter and replace dots/underscores with spaces
+    name = name.replaceAll(RegExp(r'[._]'), ' ');
+    return name
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+            : '')
+        .join(' ');
   }
 }
