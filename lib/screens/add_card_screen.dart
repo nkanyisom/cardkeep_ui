@@ -183,57 +183,118 @@ class _AddCardScreenState extends State<AddCardScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Barcode Data Field with Scan Button
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: _barcodeDataController,
-                      labelText: 'Barcode Data',
-                      hintText: 'Enter or scan barcode',
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter barcode data';
-                        }
-                        if (!BarcodeScannerService.isValidBarcodeData(
-                            value.trim(), _selectedBarcodeType)) {
-                          return 'Invalid barcode data for selected type';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.qr_code_scanner),
-                    tooltip: 'Scan Options',
-                    onSelected: (value) {
-                      if (value == 'simple') {
-                        _scanBarcode();
-                      } else if (value == 'advanced') {
-                        _openAdvancedScanner();
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'simple',
-                        child: ListTile(
-                          leading: Icon(Icons.camera_alt),
-                          title: Text('Simple Scanner'),
-                          subtitle: Text('Quick barcode scan'),
+              // Barcode Data Field
+              CustomTextField(
+                controller: _barcodeDataController,
+                labelText: 'Barcode Data',
+                hintText: 'Enter barcode data or scan using camera',
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter barcode data';
+                  }
+                  if (!BarcodeScannerService.isValidBarcodeData(
+                      value.trim(), _selectedBarcodeType)) {
+                    return 'Invalid barcode data for selected type';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Scan Options Card - Web-Friendly
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.qr_code_scanner,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Scan Barcode',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Use your camera to scan loyalty card barcodes. Supports automatic detection of South African loyalty cards.',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'advanced',
-                        child: ListTile(
-                          leading: Icon(Icons.camera_enhance),
-                          title: Text('Advanced Scanner'),
-                          subtitle: Text('Camera preview + ML Kit'),
-                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _scanBarcode,
+                              icon: const Icon(Icons.camera_alt, size: 18),
+                              label: const Text('Quick Scan'),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _openAdvancedScanner,
+                              icon: const Icon(Icons.camera_enhance, size: 18),
+                              label: const Text('Smart Scanner'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.secondary,
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Basic scanning',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Auto-detect SA cards',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 16),
 

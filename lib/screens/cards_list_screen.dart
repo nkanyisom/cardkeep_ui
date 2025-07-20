@@ -4,6 +4,7 @@ import 'package:card_keep/models/loyalty_card.dart';
 import 'package:card_keep/services/simple_auth_service.dart';
 import 'package:card_keep/services/card_service.dart';
 import 'package:card_keep/screens/add_card_screen.dart';
+import 'package:card_keep/screens/barcode_scanner_screen.dart';
 import 'package:card_keep/widgets/card_tile.dart';
 import 'package:card_keep/widgets/sync_status_widget.dart';
 
@@ -14,14 +15,46 @@ class CardsListScreen extends StatefulWidget {
   State<CardsListScreen> createState() => _CardsListScreenState();
 }
 
-class _CardsListScreenState extends State<CardsListScreen> {
+class _CardsListScreenState extends State<CardsListScreen>
+    with TickerProviderStateMixin {
+  bool _isFabMenuOpen = false;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
+    // Initialize animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
     // Load cards when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CardService>().loadCards(context: context);
     });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleFabMenu() {
+    setState(() {
+      _isFabMenuOpen = !_isFabMenuOpen;
+    });
+    if (_isFabMenuOpen) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
+    }
   }
 
   @override
@@ -38,6 +71,19 @@ class _CardsListScreenState extends State<CardsListScreen> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           elevation: 0,
           actions: [
+            // Quick Scan Button
+            IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              tooltip: 'Quick Scan',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BarcodeScannerScreen(),
+                  ),
+                );
+              },
+            ),
             // User profile section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -262,16 +308,126 @@ class _CardsListScreenState extends State<CardsListScreen> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddCardScreen(),
+        floatingActionButton: Stack(
+          children: [
+            // Overlay to close menu when tapping outside
+            if (_isFabMenuOpen)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _toggleFabMenu,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                ),
               ),
-            );
-          },
-          child: const Icon(Icons.add),
+            // FAB Menu Items
+            if (_isFabMenuOpen) ...[
+              // Scan Card FAB
+              Positioned(
+                bottom: 140,
+                right: 0,
+                child: ScaleTransition(
+                  scale: _animation,
+                  child: FloatingActionButton(
+                    heroTag: "scan",
+                    onPressed: () {
+                      _toggleFabMenu();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BarcodeScannerScreen(),
+                        ),
+                      );
+                    },
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    child:
+                        const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  ),
+                ),
+              ),
+              // Scan Card Label
+              Positioned(
+                bottom: 155,
+                right: 72,
+                child: ScaleTransition(
+                  scale: _animation,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Scan Card',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Add Card FAB
+              Positioned(
+                bottom: 80,
+                right: 0,
+                child: ScaleTransition(
+                  scale: _animation,
+                  child: FloatingActionButton(
+                    heroTag: "add",
+                    onPressed: () {
+                      _toggleFabMenu();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddCardScreen(),
+                        ),
+                      );
+                    },
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: const Icon(Icons.add),
+                  ),
+                ),
+              ),
+              // Add Card Label
+              Positioned(
+                bottom: 95,
+                right: 72,
+                child: ScaleTransition(
+                  scale: _animation,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Add Card',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            // Main FAB
+            FloatingActionButton(
+              onPressed: _toggleFabMenu,
+              child: AnimatedRotation(
+                turns: _isFabMenuOpen ? 0.125 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(_isFabMenuOpen ? Icons.close : Icons.add),
+              ),
+            ),
+          ],
         ),
       );
     });
