@@ -16,17 +16,10 @@ class SyncService extends ChangeNotifier {
   DateTime? _lastSyncTime;
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
 
-  static SyncService? _instance;
-
-  factory SyncService() {
-    _instance ??= SyncService._internal();
-    return _instance!;
-  }
-
-  SyncService._internal()
-      : _apiService = ApiService(SimpleAuthService()),
-        _cacheService = OfflineCacheService(),
-        _authService = SimpleAuthService() {
+  SyncService(SimpleAuthService authService)
+      : _authService = authService,
+        _apiService = ApiService(authService),
+        _cacheService = OfflineCacheService() {
     _initializeConnectivityListener();
   }
 

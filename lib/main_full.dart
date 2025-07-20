@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:card_keep/screens/home_screen.dart';
-import 'package:card_keep/services/auth_service.dart';
+import 'package:card_keep/services/simple_auth_service.dart';
 import 'package:card_keep/services/card_service.dart';
 import 'package:card_keep/services/api_service.dart';
 import 'package:card_keep/services/firebase_messaging_service.dart';
@@ -39,11 +39,14 @@ class LoyaltyCardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => SyncService()),
+        ChangeNotifierProvider(create: (_) => SimpleAuthService()),
+        ChangeNotifierProvider<SyncService>(
+          create: (context) => SyncService(context.read<SimpleAuthService>()),
+        ),
         ChangeNotifierProvider<CardService>(
           create: (context) => CardService(
-            ApiService(context.read<AuthService>()),
+            ApiService(context.read<SimpleAuthService>()),
+            context.read<SimpleAuthService>(),
           ),
         ),
       ],

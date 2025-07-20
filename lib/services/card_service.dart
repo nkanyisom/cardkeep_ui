@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:card_keep/models/loyalty_card.dart';
 import 'package:card_keep/services/api_service.dart';
 import 'package:card_keep/services/sync_service.dart';
+import 'package:card_keep/services/simple_auth_service.dart';
 
 class CardService extends ChangeNotifier {
   final ApiService _apiService;
@@ -11,7 +12,8 @@ class CardService extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  CardService(this._apiService) : _syncService = SyncService();
+  CardService(this._apiService, SimpleAuthService authService)
+      : _syncService = SyncService(authService);
 
   // Getters
   List<LoyaltyCard> get cards => List.unmodifiable(_cards);

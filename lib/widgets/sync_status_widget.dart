@@ -259,8 +259,9 @@ class OfflineBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final syncService = context.watch<SyncService>();
     return FutureBuilder<bool>(
-      future: SyncService().isOffline(),
+      future: syncService.isOffline(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || !snapshot.data!) {
           return const SizedBox.shrink();

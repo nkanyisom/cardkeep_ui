@@ -31,9 +31,13 @@ class CardKeepApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SimpleAuthService()),
         ChangeNotifierProvider<CardService>(
-          create: (context) => CardService(
-            ApiService(context.read<SimpleAuthService>()),
-          ),
+          create: (context) {
+            final authService = context.read<SimpleAuthService>();
+            return CardService(
+              ApiService(authService),
+              authService, // Pass the same auth service instance
+            );
+          },
         ),
       ],
       child: MaterialApp(
