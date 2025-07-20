@@ -6,6 +6,7 @@ import 'package:card_keep/services/card_service.dart';
 import 'package:card_keep/services/api_service.dart';
 import 'package:card_keep/services/offline_cache_service.dart';
 import 'package:card_keep/models/loyalty_card.dart';
+import 'package:card_keep/screens/barcode_scanner_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -371,7 +372,7 @@ class _CardDashboardState extends State<CardDashboard> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('My Loyalty Cards'),
+            const Text('🔴 SCANNER TEST - My Loyalty Cards 🔴'),
             const SizedBox(width: 16),
             // User info display
             Consumer<SimpleAuthService>(
@@ -419,8 +420,35 @@ class _CardDashboardState extends State<CardDashboard> {
             ),
           ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.red,
         actions: [
+          // SCANNER BUTTON - Should be very visible
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BarcodeScannerScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+              label: const Text(
+                'SCAN',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign Out',
@@ -488,7 +516,29 @@ class _CardDashboardState extends State<CardDashboard> {
                         label: const Text('Load Cards'),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const BarcodeScannerScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code_scanner,
+                            color: Colors.white),
+                        label: const Text('SCAN CARD',
+                            style: TextStyle(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          elevation: 3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _showAddCardDialog(context),
