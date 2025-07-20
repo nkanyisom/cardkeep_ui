@@ -26,152 +26,268 @@ class _CardsListScreenState extends State<CardsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Loyalty Cards'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<SimpleAuthService>().signOut();
-              if (mounted) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Offline banner
-          const OfflineBanner(),
+    return Consumer<SimpleAuthService>(builder: (context, authService, child) {
+      final currentUser = authService.currentUser;
+      final userEmail = currentUser?['email'] ?? 'User';
+      final userName = _extractUserName(userEmail);
 
-          // Sync status
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            child: const SyncStatusWidget(),
-          ),
-
-          // Cards list
-          Expanded(
-            child: Consumer<CardService>(
-              builder: (context, cardService, child) {
-                if (cardService.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-
-                if (cardService.errorMessage != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          cardService.errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.red[300],
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () =>
-                              cardService.loadCards(context: context),
-                          child: const Text('Retry'),
-                        ),
-                      ],
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('CardKeep',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          elevation: 0,
+          actions: [
+            // User profile section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Text(
+                      userName.substring(0, 1).toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  );
-                }
-
-                if (cardService.cards.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.credit_card_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No loyalty cards yet',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add your first loyalty card to get started',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddCardScreen(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Card'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                // Cards list with pull-to-refresh
-                return RefreshIndicator(
-                  onRefresh: () => _refreshCards(context, cardService),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: cardService.cards.length,
-                    itemBuilder: (context, index) {
-                      final card = cardService.cards[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: CardTile(
-                          card: card,
-                          onTap: () => _showCardDetails(context, card),
-                          onDelete: () => _deleteCard(context, card),
-                        ),
-                      );
-                    },
                   ),
-                );
+                  const SizedBox(width: 8),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        userEmail,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sign Out',
+              onPressed: () async {
+                await context.read<SimpleAuthService>().signOut();
+                if (mounted) {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
               },
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddCardScreen(),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Offline banner
+            const OfflineBanner(),
+
+            // Welcome and sync status section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, $userName!',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  const SyncStatusWidget(),
+                ],
+              ),
             ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
+
+            // Cards list
+            Expanded(
+              child: Consumer<CardService>(
+                builder: (context, cardService, child) {
+                  if (cardService.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (cardService.errorMessage != null) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red[300],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            cardService.errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.red[300],
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () =>
+                                cardService.loadCards(context: context),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (cardService.cards.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                borderRadius: BorderRadius.circular(60),
+                              ),
+                              child: Icon(
+                                Icons.credit_card,
+                                size: 60,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'No loyalty cards yet',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Keep all your loyalty cards in one place.\nNever lose them again!',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.7),
+                                  ),
+                            ),
+                            const SizedBox(height: 32),
+                            FilledButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AddCardScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text('Add Your First Card'),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  cardService.loadCards(context: context),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Refresh Cards'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Cards list with pull-to-refresh
+                  return RefreshIndicator(
+                    onRefresh: () => _refreshCards(context, cardService),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: cardService.cards.length,
+                      itemBuilder: (context, index) {
+                        final card = cardService.cards[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: CardTile(
+                            card: card,
+                            onTap: () => _showCardDetails(context, card),
+                            onDelete: () => _deleteCard(context, card),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddCardScreen(),
+              ),
+            );
+          },
+          child: const Icon(Icons.add),
+        ),
+      );
+    });
+  }
+
+  String _extractUserName(String email) {
+    // Extract name from email (part before @)
+    String name = email.split('@')[0];
+    // Capitalize first letter and replace dots/underscores with spaces
+    name = name.replaceAll(RegExp(r'[._]'), ' ');
+    return name
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+            : '')
+        .join(' ');
   }
 
   /// Refresh cards with sync service
