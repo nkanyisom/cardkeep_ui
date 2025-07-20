@@ -45,6 +45,26 @@ class OfflineCacheService {
     print('🧹 All cache cleared');
   }
 
+  /// Clear cards for current user only
+  Future<void> clearCurrentUserCards() async {
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) return;
+
+    final keysToRemove = <String>[];
+    if (_cardsBox != null) {
+      for (var key in _cardsBox!.keys) {
+        if (key.toString().startsWith('${currentUser}_')) {
+          keysToRemove.add(key.toString());
+        }
+      }
+    }
+
+    for (var key in keysToRemove) {
+      await _cardsBox?.delete(key);
+    }
+    print('🧹 Cleared ${keysToRemove.length} cards for user $currentUser');
+  }
+
   /// Set current user for data isolation
   Future<void> setCurrentUser(String userId) async {
     if (_currentUserId != userId) {
@@ -116,6 +136,10 @@ class OfflineCacheService {
     final currentUser = getCurrentUserId();
     if (currentUser == null) return;
 
+    // Clear existing cards for current user first
+    await clearCurrentUserCards();
+
+    // Add new cards
     final Map<String, LoyaltyCard> cardsMap = {};
     for (var card in cards) {
       String key = card.id?.toString() ??
@@ -124,6 +148,7 @@ class OfflineCacheService {
       cardsMap[userSpecificKey] = card;
     }
     await _cardsBox?.putAll(cardsMap);
+    print('📦 Cached ${cards.length} cards for user $currentUser');
   }
 
   /// Update cached card with user-specific key
@@ -160,12 +185,27 @@ class OfflineCacheService {
 
   /// Delete cached card
   Future<void> deleteCachedCard(String cardId) async {
-    await _cardsBox?.delete(cardId);
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) {
+      print('⚠️ No current user set for card deletion');
+      return;
+    }
+
+    String userSpecificKey = '${currentUser}_$cardId';
+    await _cardsBox?.delete(userSpecificKey);
+    print('🗑️ Deleted cached card with key: $userSpecificKey');
   }
 
   /// Get cached card by ID
   LoyaltyCard? getCachedCard(String cardId) {
-    return _cardsBox?.get(cardId);
+    final currentUser = getCurrentUserId();
+    if (currentUser == null) {
+      print('⚠️ No current user set for card retrieval');
+      return null;
+    }
+
+    String userSpecificKey = '${currentUser}_$cardId';
+    return _cardsBox?.get(userSpecificKey);
   }
 
   // Sync Metadata Operations
@@ -196,7 +236,9 @@ class OfflineCacheService {
 
   /// Get pending operations count
   int getPendingOperationsCount() {
-    return getCardsNeedingSync().length;
+    final pendingCards = getCardsNeedingSync().length;
+    final pendingDeletes = getPendingDeletions().length;
+    return pendingCards + pendingDeletes;
   }
 
   // Connectivity helpers
@@ -234,13 +276,19 @@ class OfflineCacheService {
   Future<List<LoyaltyCard>> mergeWithServerData(
       List<LoyaltyCard> serverCards) async {
     final localChanges = getCardsNeedingSync();
+    final pendingDeletions = getPendingDeletions();
 
-    // Start with server data
+    // Start with server data, but exclude cards pending deletion
     final List<LoyaltyCard> mergedCards = [];
 
-    // Add all server cards (marked as synced)
+    // Add server cards that are NOT pending deletion
     for (var serverCard in serverCards) {
-      mergedCards.add(serverCard.markAsSynced());
+      if (!pendingDeletions.contains(serverCard.id.toString())) {
+        mergedCards.add(serverCard.markAsSynced());
+      } else {
+        print(
+            '🚫 Excluding card ${serverCard.id} from merge - pending deletion');
+      }
     }
 
     // Preserve local cards that need sync (haven't been pushed to server yet)
@@ -262,6 +310,8 @@ class OfflineCacheService {
     await setLastSyncTime(DateTime.now());
     await setSyncStatus('synced');
 
+    print(
+        '📊 Merged ${mergedCards.length} cards (excluded ${pendingDeletions.length} pending deletions)');
     return mergedCards;
   }
 
@@ -299,5 +349,57 @@ class OfflineCacheService {
       'pendingOperations': pendingOps,
       'hasPendingChanges': pendingOps > 0,
     };
+  }
+
+  // Pending Deletion Operations
+
+  /// Add card ID to pending deletions
+  Future<void> addPendingDeletion(String cardId) async {
+    try {
+      List<String> pendingDeletes = getPendingDeletions();
+      if (!pendingDeletes.contains(cardId)) {
+        pendingDeletes.add(cardId);
+        await _metadataBox?.put('pending_deletions', pendingDeletes);
+        print('📝 Added card $cardId to pending deletions');
+      }
+    } catch (e) {
+      print('⚠️ Error adding pending deletion: $e');
+    }
+  }
+
+  /// Get list of card IDs pending deletion
+  List<String> getPendingDeletions() {
+    try {
+      final deletions = _metadataBox?.get('pending_deletions');
+      if (deletions is List) {
+        return deletions.cast<String>();
+      }
+      return [];
+    } catch (e) {
+      print('⚠️ Error getting pending deletions: $e');
+      return [];
+    }
+  }
+
+  /// Remove card from pending deletions (called after successful server delete)
+  Future<void> removePendingDeletion(String cardId) async {
+    try {
+      List<String> pendingDeletes = getPendingDeletions();
+      pendingDeletes.remove(cardId);
+      await _metadataBox?.put('pending_deletions', pendingDeletes);
+      print('✅ Removed card $cardId from pending deletions');
+    } catch (e) {
+      print('⚠️ Error removing pending deletion: $e');
+    }
+  }
+
+  /// Clear all pending deletions (useful for cleanup)
+  Future<void> clearPendingDeletions() async {
+    try {
+      await _metadataBox?.delete('pending_deletions');
+      print('🧹 Cleared all pending deletions');
+    } catch (e) {
+      print('⚠️ Error clearing pending deletions: $e');
+    }
   }
 }

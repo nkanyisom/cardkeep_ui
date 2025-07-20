@@ -109,6 +109,20 @@ class SyncService extends ChangeNotifier {
 
   /// Push local changes to server
   Future<void> _pushLocalChanges(List<LoyaltyCard> pendingCards) async {
+    // Handle pending deletions first
+    final pendingDeletions = _cacheService.getPendingDeletions();
+    for (String cardId in pendingDeletions) {
+      try {
+        await _apiService.deleteCard(int.parse(cardId));
+        await _cacheService.removePendingDeletion(cardId);
+        debugPrint('Successfully deleted card $cardId from server');
+      } catch (e) {
+        debugPrint('Failed to delete card $cardId from server: $e');
+        // Keep in pending deletions for next sync attempt
+      }
+    }
+
+    // Handle card updates/creates
     for (var card in pendingCards) {
       try {
         if (card.id == null) {
@@ -232,17 +246,25 @@ class SyncService extends ChangeNotifier {
   /// Delete card with offline support
   Future<void> deleteCard(int cardId) async {
     try {
-      // Remove from cache
-      await _cacheService.deleteCachedCard(cardId.toString());
-
       // Try to delete from server if online
       if (await _cacheService.isOnline() && _authService.isAuthenticated) {
         try {
           await _apiService.deleteCard(cardId);
+          // Delete successful - now remove from cache
+          await _cacheService.deleteCachedCard(cardId.toString());
+          debugPrint('Card $cardId deleted from server and cache');
         } catch (e) {
           debugPrint('Failed to delete card from server: $e');
-          // Card already removed from cache, server will be updated on next sync
+          // Keep the delete pending for next sync attempt
+          await _cacheService.addPendingDeletion(cardId.toString());
+          // Still remove from local cache to give user immediate feedback
+          await _cacheService.deleteCachedCard(cardId.toString());
         }
+      } else {
+        // Offline - add to pending deletions and remove from local cache
+        await _cacheService.addPendingDeletion(cardId.toString());
+        await _cacheService.deleteCachedCard(cardId.toString());
+        debugPrint('Card $cardId queued for deletion when online');
       }
     } catch (e) {
       debugPrint('Error deleting card: $e');
