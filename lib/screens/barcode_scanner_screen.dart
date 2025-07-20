@@ -46,6 +46,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     try {
       setState(() => _isLoading = true);
 
+      // Try to initialize camera - this might fail on web
       _cameraController =
           await AdvancedBarcodeScannerService.initializeCameraController();
 
@@ -56,7 +57,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        _showErrorDialog('Camera initialization failed: $e');
+        // Don't show error dialog for web - just fall back to simple scanner
+        print('Camera not available (likely web platform): $e');
       }
     }
   }
@@ -483,10 +485,250 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Widget _buildScannerView() {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+    // Check if we have a working camera controller
+    bool hasCameraAccess =
+        _cameraController != null && _cameraController!.value.isInitialized;
+
+    if (!hasCameraAccess) {
+      // Web-friendly interface when camera is not available
+      return _buildWebFriendlyScannerView();
     }
 
+    // Original camera view for mobile/desktop
+    return _buildCameraScannerView();
+  }
+
+  Widget _buildWebFriendlyScannerView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Header with web info
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blue[700]!, Colors.blue[500]!],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.web,
+                  color: Colors.white,
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Web Scanner Ready',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Smart SA Card Detection Active',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Barcode scanner illustration
+          Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[300]!, width: 2),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.qr_code_scanner,
+                  size: 80,
+                  color: Colors.blue[600],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Tap to Scan',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Main scan button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: _useSimpleScanner,
+              icon: const Icon(Icons.camera_alt, size: 24),
+              label: const Text(
+                'Scan Barcode',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 3,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // OR divider
+          Row(
+            children: [
+              Expanded(child: Divider(color: Colors.grey[400])),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'OR',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Colors.grey[400])),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Manual entry button
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _scannedBarcode = ''; // Trigger manual entry mode
+                  _recognitionResult =
+                      SACardRecognitionService.recognizeCard('');
+                });
+              },
+              icon: const Icon(Icons.edit, size: 20),
+              label: const Text(
+                'Enter Manually',
+                style: TextStyle(fontSize: 16),
+              ),
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Features info
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.verified, color: Colors.green[700], size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Smart Detection Features',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green[800],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.flag, color: Colors.orange[600], size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Automatically detects 40+ South African loyalty cards',
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.palette, color: Colors.blue[600], size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Applies authentic brand colors and icons',
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.flash_on, color: Colors.yellow[700], size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'One-click card addition for recognized brands',
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraScannerView() {
     return Column(
       children: [
         // Header with SA card detection info
