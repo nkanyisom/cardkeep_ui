@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:card_keep/models/loyalty_card.dart';
-import 'package:card_keep/services/barcode_scanner_service.dart';
 
 class CardTile extends StatelessWidget {
   final LoyaltyCard card;
@@ -44,74 +43,80 @@ class CardTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Card Details
               Expanded(
-    );
-  }
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.cardName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Barcode Type: ${card.barcodeType.name}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Code: ${card.barcodeData}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
 
-  IconData _getBarcodeIcon(BarcodeType type) {
-    switch (type) {
-      case BarcodeType.qrCode:
-        return Icons.qr_code;
-      case BarcodeType.code128:
-      case BarcodeType.code39:
-      case BarcodeType.ean13:
-      case BarcodeType.ean8:
-      case BarcodeType.upca:
-      case BarcodeType.upce:
-        return Icons.barcode_reader;
-      case BarcodeType.pdf417:
-        return Icons.document_scanner;
-    }
-  }
-}   );
-              'Code: ${card.barcodeData}',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-                fontFamily: 'monospace',
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'view':
-                onTap?.call();
-                break;
-              case 'delete':
-                onDelete?.call();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'view',
-              child: Row(
-                children: [
-                  Icon(Icons.visibility),
-                  SizedBox(width: 8),
-                  Text('View Details'),
+              // Menu Button
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'view':
+                      onTap?.call();
+                      break;
+                    case 'delete':
+                      onDelete?.call();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'view',
+                    child: Row(
+                      children: [
+                        Icon(Icons.visibility),
+                        SizedBox(width: 8),
+                        Text('View Details'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Delete', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-        onTap: onTap,
       ),
     );
   }

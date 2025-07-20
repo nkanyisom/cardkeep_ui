@@ -114,15 +114,23 @@ class SimpleAuthService extends ChangeNotifier {
 
           notifyListeners();
           return true;
+        } else {
+          // Successful status but unexpected response format
+          print('⚠️ Unexpected success response format: $data');
+          _errorMessage = null; // Clear any previous errors
+          notifyListeners();
+          return true; // Still consider it successful since status is 200/201
         }
       } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
         _errorMessage = data['message'] ?? 'Registration failed';
         return false;
+      } else {
+        // Non-success status codes
+        final data = jsonDecode(response.body);
+        _errorMessage = data['message'] ?? 'Failed to create account';
+        return false;
       }
-
-      _errorMessage = 'Failed to create account: ${response.body}';
-      return false;
     } catch (e) {
       print('Signup error: $e');
       _errorMessage =
