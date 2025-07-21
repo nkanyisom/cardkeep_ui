@@ -12,15 +12,72 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    // Initialize Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
 
-  // Initialize offline cache
-  await OfflineCacheService().initialize();
+    // Initialize offline cache
+    await OfflineCacheService().initialize();
+    print('✅ Offline cache initialized successfully');
 
-  runApp(const CardKeepApp());
+    runApp(const CardKeepApp());
+  } catch (e) {
+    print('❌ Initialization error: $e');
+    // Run app with error handling even if Firebase fails
+    runApp(CardKeepErrorApp(error: e.toString()));
+  }
+}
+
+class CardKeepErrorApp extends StatelessWidget {
+  final String error;
+
+  const CardKeepErrorApp({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CardKeep - Error',
+      home: Scaffold(
+        appBar: AppBar(title: const Text('CardKeep - Initialization Error')),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error,
+                color: Colors.red,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'App Initialization Failed',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                error,
+                style: const TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  // Restart the app
+                  main();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class CardKeepApp extends StatelessWidget {
@@ -372,7 +429,7 @@ class _CardDashboardState extends State<CardDashboard> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('🔴 SCANNER TEST - My Loyalty Cards 🔴'),
+            const Text('CardKeep - My Loyalty Cards'),
             const SizedBox(width: 16),
             // User info display
             Consumer<SimpleAuthService>(
@@ -420,7 +477,7 @@ class _CardDashboardState extends State<CardDashboard> {
             ),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // SCANNER BUTTON - Should be very visible
           Container(

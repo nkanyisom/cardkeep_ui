@@ -28,32 +28,32 @@ class EnvironmentConfig {
   // Firebase Configuration
   static const String firebaseApiKey = String.fromEnvironment(
     'FIREBASE_API_KEY',
-    defaultValue: 'your-api-key',
+    defaultValue: 'AIzaSyCKwndua3dP4PxOkRncd8JYVM2HIIUYDCc',
   );
 
   static const String firebaseAuthDomain = String.fromEnvironment(
     'FIREBASE_AUTH_DOMAIN',
-    defaultValue: 'your-project.firebaseapp.com',
+    defaultValue: 'loyalty-card-app-c4947.firebaseapp.com',
   );
 
   static const String firebaseProjectId = String.fromEnvironment(
     'FIREBASE_PROJECT_ID',
-    defaultValue: 'your-project-id',
+    defaultValue: 'loyalty-card-app-c4947',
   );
 
   static const String firebaseStorageBucket = String.fromEnvironment(
     'FIREBASE_STORAGE_BUCKET',
-    defaultValue: 'your-project.appspot.com',
+    defaultValue: 'loyalty-card-app-c4947.firebasestorage.app',
   );
 
   static const String firebaseMessagingSenderId = String.fromEnvironment(
     'FIREBASE_MESSAGING_SENDER_ID',
-    defaultValue: '123456789',
+    defaultValue: '649249270292',
   );
 
   static const String firebaseAppId = String.fromEnvironment(
     'FIREBASE_APP_ID',
-    defaultValue: '1:123456789:web:abcdef123456',
+    defaultValue: '1:649249270292:android:c2e38c5ae48d79f91f5501',
   );
 
   static const String firebaseMeasurementId = String.fromEnvironment(
